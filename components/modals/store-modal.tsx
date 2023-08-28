@@ -1,8 +1,11 @@
 "use client";
 
+import {useState} from "react"
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import axios from "axios"
+import { toast } from "react-hot-toast";
 
 import { Modal } from "@/components/ui/modal";
 import { useStoreModal } from "@/hooks/use-store-modal";
@@ -22,15 +25,32 @@ const formSchema = z.object({
 });
 
 export default function StoreModal() {
+  const [loading,setLoading] = useState(false)
+
   const storeModal = useStoreModal();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    defaultValues:{
+      name:""
+    },
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    console.log(values);
-    //TODO: CREATE STORE
+    try{
+      setLoading(true)
+
+      const response =await axios.post("/api/stores",values)
+
+      console.log(response.data);
+      toast.success("store created!")
+    }
+    catch{
+      toast.error("Something went wrong")
+    }
+    finally{
+
+    }
   };
   return (
     <Modal
@@ -50,15 +70,15 @@ export default function StoreModal() {
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ecommerce" {...field} />
+                      <Input disabled={loading} placeholder="Ecommerce" {...field} />
                     </FormControl>
                     <FormMessage/>
                   </FormItem>
                 )}
               />
               <div className="flex justify-end pt-6 space-x-2 items-center w-full">
-                  <Button variant="outline" onClick={storeModal.onClose}>Cancel</Button>
-                  <Button type="submit">Continue</Button>
+                  <Button disabled={loading} variant="outline" onClick={storeModal.onClose}>Cancel</Button>
+                  <Button disabled={loading} type="submit">Continue</Button>
               </div>
             </form>
           </Form>
